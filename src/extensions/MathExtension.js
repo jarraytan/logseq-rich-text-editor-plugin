@@ -104,7 +104,7 @@ export const MathExtension = Node.create({
             attrs: {
               formula: formula || "",
               displayMode: false,
-              token: token()
+              token: token(),
             },
           });
         },
@@ -164,7 +164,7 @@ export const MathExtension = Node.create({
 export const renderKaTeX = (
   formula,
   displayMode = false,
-  throwOnError = false
+  throwOnError = false,
 ) => {
   try {
     return katex.renderToString(formula, {
@@ -358,7 +358,7 @@ export const convertMarkdownToHTML = async (markdown) => {
       content: match,
       id,
     });
-    return `※※※PROTECTEDBLOCK※${id}※※`;
+    return `※※※PROTECTEDBLOCK※${id}※※※`;
   });
 
   // 行内代码保护
@@ -376,7 +376,7 @@ export const convertMarkdownToHTML = async (markdown) => {
   // 2. 处理数学公式
 
   // 块级数学公式（支持多行）
-  const blockMathWithNewlinesRegex = /\$\$\n?([\s\S]*?)\n?\$\$/g;
+  const blockMathWithNewlinesRegex = /(?:^|\n)\$\$([^\$]*?)\$\$(?:\n|$)/g;
   result = result.replace(blockMathWithNewlinesRegex, (match, formula) => {
     const cleanedFormula = formula
       .trim()
@@ -385,9 +385,8 @@ export const convertMarkdownToHTML = async (markdown) => {
     return `※※※MATHBLOCK※※※${escapeHtml(cleanedFormula)}※※※ENDMATH※※※`;
   });
 
-  // 行内数学公式（更严格的匹配，避免与货币符号冲突）
-  // 使用负向零宽断言确保 $ 符号不被错误匹配
-  const inlineMathRegex = /(?:^|[^\\])\$([^$\n]+?)\$(?!\d)/g;
+  // 行内数学公式
+  const inlineMathRegex = /\$([^$\n]+?[^\\])\$/g;
   result = result.replace(inlineMathRegex, (match, formula) => {
     const cleanedFormula = formula.trim();
     return `※※※MATHINLINE※※※${escapeHtml(cleanedFormula)}※※※ENDMATH※※※`;
@@ -475,7 +474,7 @@ export const convertMarkdownToHTML = async (markdown) => {
   // 图片
   result = result.replace(
     /!\[([^\]]*)\]\(([^)]+)\)/g,
-    '<img src="$2" alt="$1">'
+    '<img src="$2" alt="$1">',
   );
 
   // 粗体
@@ -493,7 +492,7 @@ export const convertMarkdownToHTML = async (markdown) => {
     /※※※MATHBLOCK※※※([\s\S]*?)※※※ENDMATH※※※/g,
     (match, formula) => {
       return `<div data-formula="${formula}" data-display-mode="true" class="math-block" data-type="math"></div>`;
-    }
+    },
   );
 
   // 行内公式
@@ -501,7 +500,7 @@ export const convertMarkdownToHTML = async (markdown) => {
     /※※※MATHINLINE※※※([\s\S]*?)※※※ENDMATH※※※/g,
     (match, formula) => {
       return `<span data-formula="${formula}" data-display-mode="false" class="math-inline" data-type="math"></span>`;
-    }
+    },
   );
 
   // 6. 恢复被保护的内容
@@ -522,13 +521,13 @@ export const convertMarkdownToHTML = async (markdown) => {
         placeholder,
         `<pre><code${
           language ? ` class="language-${language}"` : ""
-        }>${escapeHtml(codeContent)}</code></pre>`
+        }>${escapeHtml(codeContent)}</code></pre>`,
       );
     } else {
       const codeContent = block.content.replace(/`([^`]+)`/, "$1");
       result = result.replace(
         placeholder,
-        `<code>${escapeHtml(codeContent)}</code>`
+        `<code>${escapeHtml(codeContent)}</code>`,
       );
     }
   });
@@ -537,6 +536,7 @@ export const convertMarkdownToHTML = async (markdown) => {
   const lines = result.split("\n");
   const processedLines = [];
   let inParagraph = false;
+  let inBlock = false; //在块里
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -551,12 +551,9 @@ export const convertMarkdownToHTML = async (markdown) => {
     }
 
     // 检查是否是块级元素
-    const isBlockElement =
-      line.match(
-        /^<(h[1-6]|div|span|pre|ul|ol|blockquote|hr|table|img|a|strong|em|del|code)/
-      ) ||
-      line.startsWith("※※※MATH") ||
-      line.includes('data-type="math"');
+    const isBlockElement = line.match(
+      /^<(h[1-6]|div|span|pre|ul|ol|blockquote|hr|table|img|a|strong|em|del|code)/,
+    );
 
     if (isBlockElement) {
       if (inParagraph) {
@@ -564,19 +561,22 @@ export const convertMarkdownToHTML = async (markdown) => {
         inParagraph = false;
       }
       processedLines.push(line);
+      inBlock = !(
+        line.match(new RegExp(`</${isBlockElement[1]}>`)) || line.match(/\/>/)
+      );
     } else {
-      if (!inParagraph) {
+      if (!inParagraph && !inBlock) {
         processedLines.push("<p>");
         inParagraph = true;
       }
       processedLines.push(line);
-      // 如果不是最后一行且下一行不是块级元素，添加换行
-      if (
-        i < lines.length - 1 &&
-        !lines[i + 1].match(/^<(h[1-6]|div|pre|ul|ol|blockquote|hr|table)/)
-      ) {
-        processedLines.push("<br>");
-      }
+    }
+    // 如果不是最后一行且下一行不是块级元素，添加换行
+    if (
+      i < lines.length - 1 &&
+      !lines[i + 1].match(/^<(h[1-6]|div|pre|ul|ol|blockquote|hr|table)/)
+    ) {
+      processedLines.push("<br>");
     }
   }
 
