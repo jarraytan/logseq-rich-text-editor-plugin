@@ -275,8 +275,9 @@ export const convertHTMLToMarkdown = async (html) => {
   const blockMathRegex =
     /<[^>]*?data-formula="([^"]*)"[^>]*data-display-mode="true"[^>]*class="math-block"[^>]*data-type="math"[^>]*><\/.+?>/g;
   tempHtml = tempHtml.replace(blockMathRegex, (match, formula) => {
+    formula = html2md(formula); //去除公式内的HTML标签
     const placeholder = `※※※MATHBLOCK※${placeholders.mathBlocks.length}※※※`;
-    placeholders.mathBlocks.push(`\n$$${formula}$$\n`);
+    placeholders.mathBlocks.push("\n$$" + formula + "$$\n");
     return placeholder;
   });
 
@@ -284,8 +285,9 @@ export const convertHTMLToMarkdown = async (html) => {
   const inlineMathRegex =
     /<[^>]*?data-formula="([^"]*)"[^>]*data-display-mode="false"[^>]*class="math-inline"[^>]*data-type="math"[^>]*><\/.+?>/g;
   tempHtml = tempHtml.replace(inlineMathRegex, (match, formula) => {
+    formula = html2md(formula); //去除公式内的HTML标签
     const placeholder = `※※※MATHINLINE※${placeholders.mathBlocks.length}※※※`;
-    placeholders.mathBlocks.push(`$${formula}$`);
+    placeholders.mathBlocks.push(`\$${formula}\$`);
     return placeholder;
   });
 
@@ -386,7 +388,7 @@ export const convertMarkdownToHTML = async (markdown) => {
   });
 
   // 行内数学公式
-  const inlineMathRegex = /\$([^$\n]+?[^\\])\$/g;
+  const inlineMathRegex = /\$([^\$\n]+?[^\\])\$/g;
   result = result.replace(inlineMathRegex, (match, formula) => {
     const cleanedFormula = formula.trim();
     return `※※※MATHINLINE※※※${escapeHtml(cleanedFormula)}※※※ENDMATH※※※`;

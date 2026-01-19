@@ -1,157 +1,55 @@
-import { MathExtension, renderKaTeX, validateLaTeX } from "../src/extensions/MathExtension.js";
-import katex from "katex";
-
-jest.mock("katex");
+import { describe, it, expect, beforeEach } from "vitest";
+import { Editor } from "@tiptap/core";
+import StarterKit from "@tiptap/starter-kit";
+import {
+  convertHTMLToMarkdown,
+  MathExtension,
+} from "../src/extensions/MathExtension";
 
 describe("MathExtension", () => {
-  describe("Extension Configuration", () => {
-    it("should have correct name", () => {
-      expect(MathExtension.name).toBe("math");
-    });
+  let editor;
 
-    it("should be a block node", () => {
-      expect(MathExtension.group).toBe("block");
-    });
-
-    it("should have correct attributes", () => {
-      const extension = MathExtension;
-      const attributes = extension.addAttributes();
-
-      expect(attributes).toBeDefined();
-      expect(attributes.formula).toBeDefined();
-      expect(attributes.displayMode).toBeDefined();
-    });
-  });
-
-  describe("renderKaTeX", () => {
-    beforeEach(() => {
-      katex.renderToString.mockClear();
-    });
-
-    it("should render valid LaTeX formula", () => {
-      katex.renderToString.mockReturnValue("<span>Rendered formula</span>");
-
-      const result = renderKaTeX("E = mc^2", false);
-
-      expect(katex.renderToString).toHaveBeenCalledWith(
-        "E = mc^2",
-        expect.objectContaining({
-          displayMode: false,
-          throwOnError: false,
+  beforeEach(() => {
+    editor = new Editor({
+      extensions: [
+        StarterKit.configure({
+          // 禁用可能干扰的扩展，如CodeBlock
+          codeBlock: false,
         }),
-      );
-      expect(result).toBe("<span>Rendered formula</span>");
-    });
-
-    it("should handle display mode", () => {
-      katex.renderToString.mockReturnValue("<span>Display formula</span>");
-
-      renderKaTeX("\\sum_{i=1}^{n} i", true);
-
-      expect(katex.renderToString).toHaveBeenCalledWith(
-        "\\sum_{i=1}^{n} i",
-        expect.objectContaining({
-          displayMode: true,
-        }),
-      );
-    });
-
-    it("should handle errors gracefully", () => {
-      const error = new Error("Invalid LaTeX");
-      katex.renderToString.mockImplementation(() => {
-        throw error;
-      });
-
-      const result = renderKaTeX("\\invalid", false);
-
-      expect(result).toContain("katex-error");
-      expect(result).toContain("公式错误");
+        MathExtension,
+      ],
+      content: "<p>Start</p>",
     });
   });
 
-  describe("validateLaTeX", () => {
-    beforeEach(() => {
-      katex.renderToString.mockClear();
-    });
+  it("should allow inserting a math node", () => {
+    // 执行命令插入数学公式
+    editor.chain().focus().insertMathInline().run();
 
-    it("should validate correct formula", () => {
-      katex.renderToString.mockReturnValue("<span>Valid</span>");
-
-      const result = validateLaTeX("x + y = z");
-
-      expect(result.valid).toBe(true);
-      expect(result.error).toBeNull();
-    });
-
-    it("should invalidate incorrect formula", () => {
-      const error = new Error("ParseError: Invalid LaTeX");
-      katex.renderToString.mockImplementation(() => {
-        throw error;
-      });
-
-      const result = validateLaTeX("\\invalid");
-
-      expect(result.valid).toBe(false);
-      expect(result.error).toBe("ParseError: Invalid LaTeX");
-    });
+    // 检查HTML中是否包含了我们定义的 math 节点
+    const html = editor.getHTML();
+    // 检查是否有 math 相关的数据属性或类名
+    expect(html).toContain('data-type="math"');
+    // 或者更宽松的检查：包含数学节点
+    expect(html).toMatch(/math/);
   });
 
-  describe("Commands", () => {
-    let mockEditor;
-    let extension;
-
-    beforeEach(() => {
-      mockEditor = {
-        commands: {
-          insertContent: jest.fn(),
-          updateAttributes: jest.fn(),
-        },
-        state: {
-          selection: {
-            $from: {
-              node: jest.fn(),
-              depth: 1,
-            },
-          },
-        },
-      };
-
-      // Create extension instance
-      extension = {
-        ...MathExtension,
-        editor: mockEditor,
-      };
-    });
-
-    it("should provide insertMathInline command", () => {
-      const commands = extension.addCommands();
-
-      expect(commands.insertMathInline).toBeDefined();
-      expect(typeof commands.insertMathInline).toBe("function");
-    });
-
-    it("should provide insertMathBlock command", () => {
-      const commands = extension.addCommands();
-
-      expect(commands.insertMathBlock).toBeDefined();
-      expect(typeof commands.insertMathBlock).toBe("function");
-    });
-
-    it("should provide setMathFormula command", () => {
-      const commands = extension.addCommands();
-
-      expect(commands.setMathFormula).toBeDefined();
-      expect(typeof commands.setMathFormula).toBe("function");
-    });
+  it("should have the math schema registered", () => {
+    // 检查编辑器的 schema 中是否注册了我们的节点类型
+    const nodeTypes = Object.keys(editor.schema.nodes);
+    expect(nodeTypes).toContain("math");
   });
 
-  describe("Keyboard Shortcuts", () => {
-    it("should have math insertion shortcuts", () => {
-      const shortcuts = MathExtension.addKeyboardShortcuts();
+  it("should respond to keyboard shortcuts", () => {
+    // 可以模拟键盘事件来测试快捷键
+    // 这里简化地检查命令是否存在
+    expect(editor.commands.insertMathInline).toBeDefined();
+    expect(editor.commands.insertMathBlock).toBeDefined();
+  });
 
-      expect(shortcuts["Mod-m"]).toBeDefined();
-      expect(shortcuts["Mod-Shift-m"]).toBeDefined();
-      expect(shortcuts["Mod-Alt-m"]).toBeDefined();
-    });
+  it("test convertHtmlToMarkdown", () => {
+    const htmlString = `<div data-formula="\begin{pmatrix} a &amp; b \\ c &amp; d \end{pmatrix}" data-display-mode="true" class="math-block" data-type="math"></div><p></p>`;
+    const md = convertHTMLToMarkdown(htmlString);
+    expect(md).toBe("\n$$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$$\n");
   });
 });

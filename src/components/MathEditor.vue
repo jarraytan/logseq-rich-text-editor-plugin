@@ -27,8 +27,8 @@
                     </div>
                 </div>
 
-                <textarea ref="formulaInput" v-model="attrs.formula" @keydown="handleKeydown"
-                    @input="handleFormulaInput" class="math-formula-input" :placeholder="getPlaceholder()"
+                <textarea ref="formulaInput" v-model="formulaText" @keydown="handleKeydown" @input="handleFormulaInput"
+                    class="math-formula-input" :placeholder="getPlaceholder()"
                     :style="{ height: textareaHeight + 'px' }" spellcheck="false">
                 </textarea>
             </div>
@@ -101,7 +101,7 @@ import { nodeViewProps, NodeViewWrapper } from '@tiptap/vue-3'
 import { renderKaTeX, validateLaTeX } from '../extensions/MathExtension'
 
 const props = defineProps(nodeViewProps)
-const attrs = props.node.attrs;
+const attrs = ref(props.node.attrs);
 const node = props.node; //旧节点
 
 // 响应式数据
@@ -217,7 +217,7 @@ const allSymbols = computed(() => [
 
 // 方法
 const getPlaceholder = () => {
-    return attrs.displayMode
+    return props.node.attrs.displayMode
         ? '输入块级公式，例如: \\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}'
         : '输入行内公式，例如: E = mc^2'
 }
@@ -226,7 +226,8 @@ const getPlaceholder = () => {
 const renderedFormula = computed(() => {
     console.debug("renderedFormula computed")
 
-    const formula = formulaText.value || props.node.attrs.formula
+    const attrs = props.node.attrs;
+    const formula = attrs.formula
     if (!formula.trim()) {
         return '<span class="katex-placeholder">输入 LaTeX 公式...</span>'
     }
@@ -236,6 +237,12 @@ const renderedFormula = computed(() => {
     hasError.value = !validation.valid
     errorMessage.value = validation.error || ''
 
+    //外部修改同步到输入框    
+    if (formulaText.value !== formula) {
+        formulaText.value = formula 
+        setCusor();
+    }
+
     return result
 })
 
@@ -244,11 +251,16 @@ const openEditor = () => {
     if (!isEditing.value) {
         isEditing.value = true
 
-        if (formulaInput.value) {
-            formulaInput.value.focus()
-            formulaInput.value.select()
-            adjustTextareaHeight()
-        }
+        setCusor();
+    }
+}
+
+//光标移动到最后
+const setCusor = () => {
+    if (formulaInput.value) {
+        formulaInput.value.focus()
+        formulaInput.value.setSelectionRange(formulaText.length, formulaText.length); //光标移动到最后
+        adjustTextareaHeight()
     }
 }
 
@@ -287,7 +299,7 @@ const handleKeydown = (event) => {
 const handleFormulaInput = () => {
     adjustTextareaHeight()
     // 自动更新节点属性
-    props.updateAttributes({ formula: attrs.formula })
+    props.updateAttributes({ formula:props.node.attrs.formula })
 }
 
 const adjustTextareaHeight = () => {
@@ -304,6 +316,7 @@ const insertSymbol = (symbol) => {
     const input = formulaInput.value
     const start = input.selectionStart
     const end = input.selectionEnd
+    const attrs = props.node.attrs;
     const textBefore = attrs.formula.substring(0, start)
     const textAfter = attrs.formula.substring(end)
 
@@ -312,9 +325,9 @@ const insertSymbol = (symbol) => {
 
     // 移动光标到符号后面
     nextTick(() => {
-        // input.focus()
-        // const newPosition = start + symbol.length
-        // input.setSelectionRange(newPosition, newPosition)
+        input.focus()
+        const newPosition = start + symbol.length
+        input.setSelectionRange(newPosition, newPosition)
         handleFormulaInput()
     })
 }
@@ -330,14 +343,14 @@ const handleClickOutside = (event) => {
 onMounted(() => {
     document.addEventListener('click', handleClickOutside)
 
-    if (!attrs.formula) {
+    if (!props.node.attrs.formula) {
         openEditor()
     }
 
     // 确保编辑器上下文可用
     if (props.editor) {
         console.log('MathComponent mounted with editor context')
-    }  
+    }
 })
 
 onUnmounted(() => {
