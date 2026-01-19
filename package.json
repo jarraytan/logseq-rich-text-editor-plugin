@@ -2,7 +2,7 @@
   "name": "logseq-rich-text-editor",
   "version": "0.1.0",
   "description": "富文本编辑器插件，无需Markdown语法即可可视化编辑",
-  "author": "jarray & deepseek",
+  "author": "jarray Tan & deepseek",
   "license": "Apache-2.0 license",
   "logseq": {
     "id": "logseq-rich-text-editor",
