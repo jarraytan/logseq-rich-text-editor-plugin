@@ -1,0 +1,36 @@
+{
+  "name": "logseq-rich-text-editor",
+  "version": "0.1.0",
+  "description": "富文本编辑器插件，无需Markdown语法即可可视化编辑",
+  "author": "jarray & deepseek",
+  "license": "Apache-2.0 license",
+  "logseq": {
+    "id": "logseq-rich-text-editor",
+    "title": "富文本编辑器",
+    "icon": "icon.svg",
+    "main": "dist/index.html"
+  },
+  "scripts": {
+    "dev": "vite build --mode debug",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@logseq/libs": "^0.2.11",
+    "vue": "^3.3.4",
+    "@tiptap/vue-3": "^3.15.3",
+    "@tiptap/core": "^3.15.3",
+    "@tiptap/starter-kit": "^3.15.3",
+    "@tiptap/extension-image": "^3.15.3",
+    "@tiptap/extension-link": "^3.15.3",
+    "katex": "^0.16.27",
+    "@tiptap/extension-code": "^3.15.3",
+    "@tiptap/extension-code-block-lowlight": "^3.15.3",
+    "lowlight": "^3.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.3.4",
+    "vite": "^4.4.0",
+    "terser": "^5.16.1"
+  }
+}
