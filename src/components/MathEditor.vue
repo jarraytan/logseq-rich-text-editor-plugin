@@ -27,9 +27,8 @@
                     </div>
                 </div>
 
-                <textarea ref="formulaInput" v-model="formulaText" @keydown="handleKeydown" @input="handleFormulaInput"
-                    class="math-formula-input" :placeholder="getPlaceholder()"
-                    :style="{ height: textareaHeight + 'px' }" spellcheck="false">
+                <textarea ref="formulaInput" v-model="formulaText" @keydown="handleKeydown" class="math-formula-input"
+                    :placeholder="getPlaceholder()" :style="{ height: textareaHeight + 'px' }" spellcheck="false">
                 </textarea>
             </div>
 
@@ -114,6 +113,7 @@ const showAllSymbols = ref(false)
 const hasError = ref(false)
 const errorMessage = ref('')
 const formulaText = ref('')
+const isInputDirty = ref(false) // 是否修改过公式文本框
 
 //#region 常量定义
 
@@ -224,24 +224,26 @@ const getPlaceholder = () => {
 
 // 渲染后的公式
 const renderedFormula = computed(() => {
-    console.debug("renderedFormula computed")
-
     const attrs = props.node.attrs;
-    const formula = attrs.formula
+    let formula = attrs.formula
     if (!formula.trim()) {
         return '<span class="katex-placeholder">输入 LaTeX 公式...</span>'
+    }
+
+    if (formulaText.value !== formula) {
+        if (isInputDirty.value) { // 编辑框输入        
+            isInputDirty.value = false
+            formula = formulaText.value //编辑框输入        
+            props.updateAttributes({ formula: formulaText.value })
+        } else {
+            formulaText.value = formula //外部修改同步到输入框  
+        }
     }
 
     const result = renderKaTeX(formula, attrs.displayMode, false)
     const validation = validateLaTeX(formula)
     hasError.value = !validation.valid
     errorMessage.value = validation.error || ''
-
-    //外部修改同步到输入框    
-    if (formulaText.value !== formula) {
-        formulaText.value = formula 
-        setCusor();
-    }
 
     return result
 })
@@ -283,23 +285,7 @@ const handleDoubleClick = (event) => {
 }
 
 const handleKeydown = (event) => {
-    // Ctrl/Cmd + Enter 完成编辑
-    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-        event.preventDefault()
-        closeEditor()
-    }
-
-    // Esc 取消编辑（如果有内容）
-    if (event.key === 'Escape') {
-        event.preventDefault()
-        closeEditor()
-    }
-}
-
-const handleFormulaInput = () => {
-    adjustTextareaHeight()
-    // 自动更新节点属性
-    props.updateAttributes({ formula:props.node.attrs.formula })
+    isInputDirty.value = true // 标记文本框已修改
 }
 
 const adjustTextareaHeight = () => {
@@ -321,14 +307,16 @@ const insertSymbol = (symbol) => {
     const textAfter = attrs.formula.substring(end)
 
     // 插入符号
-    attrs.formula = textBefore + symbol + textAfter
+    formulaText.value = attrs.formula = textBefore + symbol + textAfter
 
     // 移动光标到符号后面
     nextTick(() => {
-        input.focus()
         const newPosition = start + symbol.length
+        input.focus()
         input.setSelectionRange(newPosition, newPosition)
-        handleFormulaInput()
+        adjustTextareaHeight()
+        // 自动更新节点属性
+        props.updateAttributes({ formula: formulaText.value })
     })
 }
 
