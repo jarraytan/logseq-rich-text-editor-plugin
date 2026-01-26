@@ -3,6 +3,7 @@ import { Editor } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import {
   convertHTMLToMarkdown,
+  convertMarkdownToHTML,
   MathExtension,
 } from "../src/extensions/MathExtension";
 
@@ -47,9 +48,56 @@ describe("MathExtension", () => {
     expect(editor.commands.insertMathBlock).toBeDefined();
   });
 
-  it("test convertHtmlToMarkdown", () => {
-    const htmlString = `<div data-formula="\begin{pmatrix} a &amp; b \\ c &amp; d \end{pmatrix}" data-display-mode="true" class="math-block" data-type="math"></div><p></p>`;
+  it("test convertHtmlToMarkdown (math-block)", () => {
+    const htmlString = `<div data-formula="\\begin{pmatrix} a &amp; b \\\\ c &amp; d \\end{pmatrix}" data-display-mode="true" class="math-block" data-type="math"></div><p></p>`;
     const md = convertHTMLToMarkdown(htmlString);
+    console.log("math-block", md);
     expect(md).toBe("\n$$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$$\n");
+  });
+
+  it("test convertHtmlToMarkdown (math-inline)", () => {
+    const htmlString = `<div data-formula="\\begin{pmatrix} a &amp; b \\\\ c &amp; d \\end{pmatrix}" data-display-mode="false" class="math-inline" data-type="math"></div><p></p>`;
+    const md = convertHTMLToMarkdown(htmlString);
+    console.log("math-inline", md);
+    expect(md).toBe("$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$");
+  });
+
+  it("test convertHtmlToMarkdown (math-inline)", () => {
+    const md = `\$\\alpha\\beta\\gamma\\omicron\$\$\\delta\$\$\\delta\\sigma\$\$\\alpha\$`;
+    const html = convertMarkdownToHTML(md);
+    console.log("html-math-inline", html);
+    expect(html).toBe(
+      `<span data-formula="\\alpha\\beta\\gamma\\omicron" data-display-mode="false" class="math-inline" data-type="math"></span><span data-formula="\\delta" data-display-mode="false" class="math-inline" data-type="math"></span><span data-formula="\\delta\\sigma" data-display-mode="false" class="math-inline" data-type="math"></span><span data-formula="\\alpha" data-display-mode="false" class="math-inline" data-type="math"></span>`,
+    );
+
+    expect(convertMarkdownToHTML(`\$\\alpha\$`)).toBe(
+      `<span data-formula="\\alpha" data-display-mode="false" class="math-inline" data-type="math"></span>`,
+    );
+
+    expect(
+      convertMarkdownToHTML(
+        "$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$",
+      ),
+    ).toBe(
+      `<span data-formula="\\begin{pmatrix} a &amp; b \\\\ c &amp; d \\end{pmatrix}" data-display-mode="false" class="math-inline" data-type="math"></span>`,
+    );
+  });
+
+  it("test convertHtmlToMarkdown (math-block)", () => {
+    const md = "\n$$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$$\n";
+    const html = convertMarkdownToHTML(md);
+    console.log("html-block", html);
+    expect(html).toBe(
+      `<div data-formula="\\begin{pmatrix} a &amp; b \\\\ c &amp; d \\end{pmatrix}" data-display-mode="true" class="math-block" data-type="math"></div>`,
+    );
+  });
+
+  it("test code-block", () => {
+    const md = "```\n\$\\alpha\\beta\\gamma\\omicron\$\$\\delta\$\$\\delta\\sigma\$\$\\alpha\$\n```";
+    const html = convertMarkdownToHTML(md);
+    console.log("html-code-block", html);
+    expect(html).toBe(
+      `<pre><code>\$\\alpha\\beta\\gamma\\omicron\$\$\\delta\$\$\\delta\\sigma\$\$\\alpha\$</code></pre>`,
+    );
   });
 });

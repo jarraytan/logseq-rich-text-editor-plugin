@@ -259,7 +259,7 @@ const html2md = (html) => {
 };
 
 // 增强版的转换函数，支持更多格式
-export const convertHTMLToMarkdown = async (html) => {
+export const convertHTMLToMarkdown = (html) => {
   if (!html) return "";
 
   // 保存公式和代码块，避免被后续转换影响
@@ -270,6 +270,7 @@ export const convertHTMLToMarkdown = async (html) => {
 
   // 1. 提取和保护数学公式
   let tempHtml = html;
+  tempHtml = tempHtml.replace(/<p><\/p>$/, ""); //去掉末尾多余的空段落
 
   // 处理块级数学公式
   const blockMathRegex =
@@ -277,7 +278,7 @@ export const convertHTMLToMarkdown = async (html) => {
   tempHtml = tempHtml.replace(blockMathRegex, (match, formula) => {
     formula = html2md(formula); //去除公式内的HTML标签
     const placeholder = `※※※MATHBLOCK※${placeholders.mathBlocks.length}※※※`;
-    placeholders.mathBlocks.push("\n$$" + formula + "$$\n");
+    placeholders.mathBlocks.push("\n$$$$" + formula + "$$$$\n"); //replace子串两个$$输出一个$，这里前后都要两个$
     return placeholder;
   });
 
@@ -329,8 +330,9 @@ export const convertHTMLToMarkdown = async (html) => {
   markdown = markdown
     .replace(/\n{3,}/g, "\n\n") // 最多两个连续空行
     .replace(/[ \t]+\n/g, "\n") // 删除行尾空格
-    .replace(/^\s+|\s+$/g, "") // 删除首尾空格
-    .trim();
+    .replace(/\n{2,}$/, "\n"); // 最后只保留一个换行
+  //.replace(/^\s+|\s+$/g, "") // 删除首尾空格 //\n$$ ... $$\n => $$ ... $$ 这种情况会被处理掉换行
+  //.trim();//\n$$ ... $$\n => $$ ... $$ 这种情况会被处理掉换行
 
   return markdown;
 };
@@ -342,8 +344,13 @@ const escapeHtml = (text) => {
   return div.innerHTML;
 };
 
+// 辅助函数：将一个美元符号替换成两个
+const replaceDollarSigns = (text) => {
+  return text.replace(/\$/g, "$$$$"); //replace的子句里，两个$表示一个$
+};
+
 // 转换 Markdown 到 HTML，支持 LaTeX 公式
-export const convertMarkdownToHTML = async (markdown) => {
+export const convertMarkdownToHTML = (markdown) => {
   if (!markdown) return "";
 
   let result = markdown;
@@ -523,13 +530,13 @@ export const convertMarkdownToHTML = async (markdown) => {
         placeholder,
         `<pre><code${
           language ? ` class="language-${language}"` : ""
-        }>${escapeHtml(codeContent)}</code></pre>`,
+        }>${replaceDollarSigns(escapeHtml(codeContent))}</code></pre>`,
       );
     } else {
       const codeContent = block.content.replace(/`([^`]+)`/, "$1");
       result = result.replace(
         placeholder,
-        `<code>${escapeHtml(codeContent)}</code>`,
+        `<code>${replaceDollarSigns(escapeHtml(codeContent))}</code>`,
       );
     }
   });
