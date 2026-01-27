@@ -54,7 +54,7 @@ window.richTextEditor = {
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
-    z-index: 99998;
+    z-index: 9;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -62,6 +62,6 @@ window.richTextEditor = {
 
 #rich-text-editor-container {
     position: relative;
-    z-index: 99999;
+    z-index: 999;
 }
 </style>

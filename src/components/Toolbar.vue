@@ -15,11 +15,6 @@
         :class="['toolbar-btn', { 'is-active': editor.isActive('strike') }]" title="删除线">
         <s>S</s>
       </button>
-
-      <button @click="editor.chain().focus().toggleCode().run()"
-        :class="['toolbar-btn', { 'is-active': editor.isActive('code') }]" title="代码块">
-        <img :src="code" alt="代码块" />
-      </button>
     </div>
 
     <div class="toolbar-group">
@@ -40,10 +35,6 @@
         <img :src="list2" alt="有序列表" />
       </button>
 
-      <button @click="editor.chain().focus().toggleBlockquote().run()"
-        :class="['toolbar-btn', { 'is-active': editor.isActive('blockquote') }]" title="引用">
-        ❝
-      </button>
     </div>
 
     <div class="toolbar-group">
@@ -57,6 +48,16 @@
 
       <button @click="addImage" class="toolbar-btn" title="插入图片">
         <img :src="img" alt="图片" />
+      </button>
+
+      <button @click="editor.chain().focus().toggleBlockquote().run()"
+        :class="['toolbar-btn', { 'is-active': editor.isActive('blockquote') }]" title="引用">
+        ❝
+      </button>
+
+      <button @click="editor.chain().focus().toggleCode().run()"
+        :class="['toolbar-btn', { 'is-active': editor.isActive('code') }]" title="代码块">
+        <img :src="code" alt="代码块" />
       </button>
     </div>
 
@@ -74,6 +75,8 @@
       </button>
     </div>
   </div>
+
+  <prompt ref="promptBox"/>
 </template>
 
 <script setup>
@@ -84,6 +87,8 @@ import list2 from "./icon/list2.svg"
 import link from "./icon/link.svg"
 import img from "./icon/img.svg"
 import code from "./icon/code.svg"
+import prompt from '../extensions/prompt.vue'
+import { ref } from 'vue';
 
 const props = defineProps({
   editor: {
@@ -92,12 +97,18 @@ const props = defineProps({
   }
 })
 
+const promptBox = ref(null);
+
 const toggleHeading = (level) => {
   props.editor.chain().focus().toggleHeading({ level }).run()
 }
 
-const addLink = () => {
-  const url = window.prompt('输入链接地址:')
+const addLink = async () => {
+  const url = await promptBox.value.open(
+    "插入链接",
+    "https://",
+    "请输入完整的URL地址...",
+  );
   if (url) {
     // 如果已经有选中文本，直接添加链接
     if (props.editor.state.selection.empty) {
@@ -105,13 +116,21 @@ const addLink = () => {
     } else {
       props.editor.chain().focus().setLink({ href: url }).run()
     }
+  } else {
+    logseq.UI.showMsg('缺少URL地址', 'warning')
   }
 }
 
-const addImage = () => {
-  const url = window.prompt('输入图片地址:')
+const addImage = async () => {
+  const url = await promptBox.value.open(
+    "输入图片地址",
+    "https://",
+    "请输入完整的图片地址...",
+  );
   if (url) {
     props.editor.chain().focus().setImage({ src: url }).run()
+  } else {
+    logseq.UI.showMsg('缺少图片地址', 'warning')
   }
 }
 </script>

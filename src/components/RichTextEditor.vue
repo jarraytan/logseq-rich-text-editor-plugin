@@ -233,6 +233,7 @@ onUnmounted(() => {
   min-height: 300px;
   padding: 16px;
   outline: none;
+  overflow-y: auto;
 }
 
 .prose-mirror-wrapper:focus-within {
