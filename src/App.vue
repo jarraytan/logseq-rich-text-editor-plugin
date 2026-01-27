@@ -1,5 +1,5 @@
 <template>
-    <div v-if="visible" class="logseq-rich-text-editor-overlay" @click="closeOnOverlay">
+    <div v-if="visible" class="logseq-rich-text-editor-overlay">
         <div id="rich-text-editor-container" @click.stop>
             <RichTextEditor :visible="visible" @save="handleSave" @cancel="handleCancel" />
         </div>
@@ -11,11 +11,6 @@ import { ref } from 'vue'
 import RichTextEditor from './components/RichTextEditor.vue'
 
 const visible = ref(false)
-
-const closeOnOverlay = () => {
-    visible.value = false
-    logseq.hideMainUI()
-}
 
 const handleSave = (content) => {
     console.log('内容已保存:', content)

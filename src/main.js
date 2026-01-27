@@ -52,11 +52,11 @@ function main() {
   console.log("=== 插件调试信息 ===");
 
   // 点击外部关闭
-  document.addEventListener("click", (e) => {
-    if (!e.target.closest?.("#rich-text-editor-container")) {
-      logseq.hideMainUI();
-    }
-  });
+  // document.addEventListener("click", (e) => {
+  //   if (!e.target.closest?.("#rich-text-editor-container")) {
+  //     logseq.hideMainUI();
+  //   }
+  // });
 
   // 创建Vue应用
   const appContainer = document.createElement("div");

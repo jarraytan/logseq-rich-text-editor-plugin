@@ -57,7 +57,11 @@
 
       <button @click="editor.chain().focus().toggleCode().run()"
         :class="['toolbar-btn', { 'is-active': editor.isActive('code') }]" title="代码块">
-        <img :src="code" alt="代码块" />
+        <img :src="code" alt="代码行" />
+      </button>
+
+      <button @click="addCodeBlock" :class="['toolbar-btn', { 'is-active': editor.isActive('codeBlock') }]" title="代码块">
+        <img :src="codeblock" alt="代码块" />
       </button>
     </div>
 
@@ -76,7 +80,7 @@
     </div>
   </div>
 
-  <prompt ref="promptBox"/>
+  <prompt ref="promptBox" />
 </template>
 
 <script setup>
@@ -87,6 +91,7 @@ import list2 from "./icon/list2.svg"
 import link from "./icon/link.svg"
 import img from "./icon/img.svg"
 import code from "./icon/code.svg"
+import codeblock from "./icon/codeblock.svg"
 import prompt from '../extensions/prompt.vue'
 import { ref } from 'vue';
 
@@ -128,9 +133,28 @@ const addImage = async () => {
     "请输入完整的图片地址...",
   );
   if (url) {
-    props.editor.chain().focus().setImage({ src: url }).run()
+    const { from, to, empty } = props.editor.state.selection;
+    if (empty || from === to) {
+      props.editor.chain().focus().setImage({ src: url }).run();
+    } else {
+      const text = props.editor.state.doc.textBetween(from, to, '\n');// 获取纯文本
+      props.editor.chain().focus().setImage({ src: url, alt: text }).run()
+    }
   } else {
     logseq.UI.showMsg('缺少图片地址', 'warning')
+  }
+}
+
+const addCodeBlock = async () => {
+  const lang = await promptBox.value.open(
+    "输入代码语言",
+    "javascript",
+    "请输入代码块的编程语言（可选）...",
+  );
+  if (lang !== null && lang.trim()) {
+    props.editor.chain().focus().setCodeBlock({ language: lang.trim() }).run();
+  } else {
+    props.editor.chain().focus().setCodeBlock().run();
   }
 }
 </script>

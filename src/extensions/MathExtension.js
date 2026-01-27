@@ -222,20 +222,20 @@ const html2md = (html) => {
       // 引用
       .replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gi, "> $1\n")
       // 无序列表
-      .replace(/<ul[^>]*>/gi, "")
-      .replace(/<\/ul>/gi, "\n")
-      .replace(/<li[^>]*>(.*?)<\/li>/gi, "- $1\n")
+      .replace(/<ul[^>]*>(.*?)<\/ul>/gis, (match, content) => {
+        return content.replace(/<li[^>]*>(.*?)<\/li>/gi, "- $1\n");
+      })
       // 有序列表（需要更复杂的处理）
       .replace(/<ol[^>]*>(.*?)<\/ol>/gis, (match, content) => {
         const items = content.match(/<li[^>]*>(.*?)<\/li>/gis) || [];
-        return (
-          items
-            .map((item, index) => {
-              const itemContent = item.replace(/<li[^>]*>(.*?)<\/li>/i, "$1");
-              return `${index + 1}. ${itemContent}\n`;
-            })
-            .join("") + "\n"
-        );
+        return items
+          .map((item, index) => {
+            const itemContent = item
+              .replace(/<li[^>]*><p>(.*?)<\/p><\/li>/i, "$1")
+              .replace(/<li[^>]*>(.*?)<\/li>/i, "$1");
+            return `${index + 1}. ${itemContent}\n`;
+          })
+          .join("");
       })
       // 水平线
       .replace(/<hr[^>]*>/gi, "---\n")
@@ -244,7 +244,11 @@ const html2md = (html) => {
       // 段落
       .replace(/<p[^>]*>(.*?)<\/p>/gi, "$1\n\n")
       // 图片
-      .replace(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/gi, "![$2]($1)")
+      .replace(
+        /<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/gi,
+        " ![$2]($1) ",
+      )
+      .replace(/<img[^>]*src="([^"]*)"[^>]*[^>]*>/gi, " ![]($1) ") //文字后紧接![]会不识别
       // 清理剩余的 HTML 标签
       .replace(/<[^>]*>/g, "")
       // HTML 实体
@@ -293,10 +297,11 @@ export const convertHTMLToMarkdown = (html) => {
   });
 
   // 2. 提取和保护代码块
-  const codeBlockRegex = /<pre[^>]*>(.*?)<\/pre>/gis;
-  tempHtml = tempHtml.replace(codeBlockRegex, (match, code) => {
+  const codeBlockRegex =
+    /<pre[^>]*><code( class="language-(.+)")?>(.*?)<\/code><\/pre>/gis;
+  tempHtml = tempHtml.replace(codeBlockRegex, (match, p1, language, code) => {
     const placeholder = `※※※CODEBLOCK※${placeholders.codeBlocks.length}※※※`;
-    placeholders.codeBlocks.push(`\`\`\`\n${code}\n\`\`\``);
+    placeholders.codeBlocks.push(`\n\`\`\`${language}\n${code}\n\`\`\`\n`);
     return placeholder;
   });
 
@@ -457,7 +462,8 @@ export const convertMarkdownToHTML = (markdown) => {
     return `<ul>${items}</ul>`;
   });
 
-  // 有序列表
+  // 有序列表,有序列表是特殊节点类型
+  //TODO "logseq.order-list-type:: number";
   result = result.replace(/(^\d+\. .*$(\n\d+\. .*$)*)/gm, (match) => {
     const items = match
       .split("\n")
@@ -477,14 +483,14 @@ export const convertMarkdownToHTML = (markdown) => {
   result = result.replace(/^## (.*$)/gm, "<h2>$1</h2>");
   result = result.replace(/^# (.*$)/gm, "<h1>$1</h1>");
 
-  // 链接
-  result = result.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-
-  // 图片
+  // 图片，必须在超链接前面处理
   result = result.replace(
-    /!\[([^\]]*)\]\(([^)]+)\)/g,
+    /\s?!\[([^\]]*)\]\(([^)]+)\)\s?/g,
     '<img src="$2" alt="$1">',
   );
+
+  // 链接
+  result = result.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 
   // 粗体
   result = result.replace(/(\*\*|__)(.*?)\1/g, "<strong>$2</strong>");

@@ -62,7 +62,7 @@ describe("MathExtension", () => {
     expect(md).toBe("$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$");
   });
 
-  it("test convertHtmlToMarkdown (math-inline)", () => {
+  it("test convertMarkdownToHTML (math-inline)", () => {
     const md = `\$\\alpha\\beta\\gamma\\omicron\$\$\\delta\$\$\\delta\\sigma\$\$\\alpha\$`;
     const html = convertMarkdownToHTML(md);
     console.log("html-math-inline", html);
@@ -83,7 +83,7 @@ describe("MathExtension", () => {
     );
   });
 
-  it("test convertHtmlToMarkdown (math-block)", () => {
+  it("test convertMarkdownToHTML (math-block)", () => {
     const md = "\n$$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$$\n";
     const html = convertMarkdownToHTML(md);
     console.log("html-block", html);
@@ -93,11 +93,153 @@ describe("MathExtension", () => {
   });
 
   it("test code-block", () => {
-    const md = "```\n\$\\alpha\\beta\\gamma\\omicron\$\$\\delta\$\$\\delta\\sigma\$\$\\alpha\$\n```";
+    const md =
+      "```\n\$\\alpha\\beta\\gamma\\omicron\$\$\\delta\$\$\\delta\\sigma\$\$\\alpha\$\n```";
     const html = convertMarkdownToHTML(md);
     console.log("html-code-block", html);
     expect(html).toBe(
       `<pre><code>\$\\alpha\\beta\\gamma\\omicron\$\$\\delta\$\$\\delta\\sigma\$\$\\alpha\$</code></pre>`,
     );
+  });
+
+  it("test convertHtmlToMarkdown (image)", () => {
+    const htmlString = `<p><img src="https://www.baidu.com/img/flexible/logo/pc/result.png"></p>`;
+    const md = convertHTMLToMarkdown(htmlString);
+    console.log("image", md);
+    expect(md).toBe(
+      " ![](https://www.baidu.com/img/flexible/logo/pc/result.png)\n",
+    );
+  });
+
+  it("test convertHtmlToMarkdown (image with alt)", () => {
+    const htmlString2 = `<p><img src="https://www.baidu.com/img/flexible/logo/pc/result.png" alt="百度logo"></p>`;
+    const md2 = convertHTMLToMarkdown(htmlString2);
+    console.log("image", md2);
+    expect(md2).toBe(
+      " ![百度logo](https://www.baidu.com/img/flexible/logo/pc/result.png)\n",
+    );
+  });
+
+  it("test convertHtmlToMarkdown (many images)", () => {
+    const htmlString2 = `<p><img src="https://www.baidu.com/img/flexible/logo/pc/result.png" alt=""><img src="https://www.baidu.com/img/flexible/logo/pc/result.png"></p>`;
+    const md2 = convertHTMLToMarkdown(htmlString2);
+    console.log("image", md2);
+    expect(md2).toBe(
+      " ![](https://www.baidu.com/img/flexible/logo/pc/result.png)  ![](https://www.baidu.com/img/flexible/logo/pc/result.png)\n",
+    );
+
+    const htmlString = `<p><img src="https://www.baidu.com/img/flexible/logo/pc/result.png" alt="">img<img src="https://www.baidu.com/img/flexible/logo/pc/result.png"></p>`;
+    const md = convertHTMLToMarkdown(htmlString);
+    console.log("image", md);
+    expect(md).toBe(
+      " ![](https://www.baidu.com/img/flexible/logo/pc/result.png) img ![](https://www.baidu.com/img/flexible/logo/pc/result.png)\n",
+    );
+  });
+
+  it("test convertMarkdownToHTML (image)", () => {
+    const md = " ![](https://www.baidu.com/img/flexible/logo/pc/result.png)\n";
+    const htmlString = convertMarkdownToHTML(md);
+    console.log("image", htmlString);
+    expect(htmlString).toBe(
+      `<img src="https://www.baidu.com/img/flexible/logo/pc/result.png" alt="">`,
+    );
+  });
+
+  it("test convertMarkdownToHTML (image with alt)", () => {
+    const md =
+      " ![百度logo](https://www.baidu.com/img/flexible/logo/pc/result.png)\n";
+    const htmlString = convertMarkdownToHTML(md);
+    console.log("image", htmlString);
+    expect(htmlString).toBe(
+      `<img src="https://www.baidu.com/img/flexible/logo/pc/result.png" alt="百度logo">`,
+    );
+  });
+
+  it("test convertMarkdownToHTML (many images)", () => {
+    const md =
+      " ![](https://www.baidu.com/img/flexible/logo/pc/result.png)  ![](https://www.baidu.com/img/flexible/logo/pc/result.png)\n";
+    const htmlString = convertMarkdownToHTML(md);
+    console.log("image", htmlString);
+    expect(htmlString).toBe(
+      `<img src="https://www.baidu.com/img/flexible/logo/pc/result.png" alt=""><img src="https://www.baidu.com/img/flexible/logo/pc/result.png" alt="">`,
+    );
+
+    const md2 =
+      " ![](https://www.baidu.com/img/flexible/logo/pc/result.png) baidu ![](https://www.baidu.com/img/flexible/logo/pc/result.png)\n";
+    const htmlString2 = convertMarkdownToHTML(md2);
+    console.log("image", htmlString2);
+    expect(htmlString2).toBe(
+      `<img src="https://www.baidu.com/img/flexible/logo/pc/result.png" alt="">baidu<img src="https://www.baidu.com/img/flexible/logo/pc/result.png" alt="">`,
+    );
+  });
+
+  it("test convertMarkdownToHTML (image and link)", () => {
+    const md =
+      " ![baidu](https://www.baidu.com/img/flexible/logo/pc/result.png) [baidu](https://www.baidu.com)";
+    const htmlString = convertMarkdownToHTML(md);
+    console.log("image", htmlString);
+    expect(htmlString).toBe(
+      `<img src="https://www.baidu.com/img/flexible/logo/pc/result.png" alt="baidu"><a href="https://www.baidu.com">baidu</a>`,
+    );
+  });
+
+  it("test convertHtmlToMarkdown (image and link)", () => {
+    const htmlString2 = `<img src="https://www.baidu.com/img/flexible/logo/pc/result.png" alt="baidu"><a href="https://www.baidu.com">baidu</a>`;
+    const md2 = convertHTMLToMarkdown(htmlString2);
+    console.log("image", md2);
+    expect(md2).toBe(
+      " ![baidu](https://www.baidu.com/img/flexible/logo/pc/result.png) [baidu](https://www.baidu.com)",
+    );
+  });
+
+  it("test convertHtmlToMarkdown (orderlist)", () => {
+    const htmlString2 = `<ol><li><p>有序列表1</p></li><li><p>有序列表2</p></li><li><p>有序列表3</p></li></ol><p></p>`;
+    const md2 = convertHTMLToMarkdown(htmlString2);
+    console.log("orderlist", md2);
+    expect(md2).toBe("1. 有序列表1\n2. 有序列表2\n3. 有序列表3\n");
+
+    const htmlString = `<ol><li>有序列表1</li><li>有序列表2</li><li>有序列表3</li></ol>`;
+    const md = convertHTMLToMarkdown(htmlString);
+    console.log("orderlist", md);
+    expect(md).toBe("1. 有序列表1\n2. 有序列表2\n3. 有序列表3\n");
+  });
+
+  it("test convertMarkdownToHTML (orderlist)", () => {
+    const md = "1. 有序列表1\n2. 有序列表2\n3. 有序列表3\n";
+    const htmlString = convertMarkdownToHTML(md);
+    console.log("orderlist", htmlString);
+    expect(htmlString).toBe(
+      `<ol><li>有序列表1</li><li>有序列表2</li><li>有序列表3</li></ol><br>`,
+    );
+  });
+
+  it("test convertHtmlToMarkdown (code block)", () => {
+    const htmlString2 = `<pre><code class="language-javascript">var a = 0;</code></pre><p></p>`;
+    const md2 = convertHTMLToMarkdown(htmlString2);
+    console.log("code-block", md2);
+    expect(md2).toBe("\n```javascript\nvar a = 0;\n```\n");
+  });
+
+  it("test convertMarkdownToHTML (code block)", () => {
+    const md = "```javascript\nvar a = 0;\n```";
+    const htmlString = convertMarkdownToHTML(md);
+    console.log("code block", htmlString);
+    expect(htmlString).toBe(
+      `<pre><code class="language-javascript">var a = 0;</code></pre>`,
+    );
+  });
+
+  it("test convertMarkdownToHTML (code)", () => {
+    const md = "`var a = 0;`";
+    const htmlString = convertMarkdownToHTML(md);
+    console.log("code", htmlString);
+    expect(htmlString).toBe(`<code>var a = 0;</code>`);
+  });
+
+  it("test convertHtmlToMarkdown (code)", () => {
+    const htmlString2 = `<code>var a = 0;</code>`;
+    const md2 = convertHTMLToMarkdown(htmlString2);
+    console.log("code", md2);
+    expect(md2).toBe("`var a = 0;`");
   });
 });
