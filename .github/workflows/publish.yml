@@ -25,7 +25,7 @@ jobs:
           npm install -g pnpm
           pnpm install
           pnpm run build
-          mkdir -p ${{ env.PLUGIN_NAME }}
+          mkdir ${{ env.PLUGIN_NAME }}
           cp README.md package.json icon.svg ${{ env.PLUGIN_NAME }}
           cp -r ./meta ${{ env.PLUGIN_NAME }}/
           mv dist ${{ env.PLUGIN_NAME }}/
