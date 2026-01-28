@@ -4,5 +4,7 @@
   "author": "jarray & deepseek",
   "repo": "jarraytan/logseq-rich-text-editor-plugin",
   "icon": "icon.svg",
-  "theme": false
+  "theme": false,
+  "web": true,
+  "supportsDB": false
 }

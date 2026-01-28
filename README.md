@@ -32,6 +32,19 @@
     - 矩阵：pmatrix、bmatrix 等
     - 对齐环境：align、gather 等
 
+## 效果图
+
+编辑画面
+![编辑图](./meta/editor.png)
+logseq效果
+![效果图](./meta/show.png)
+
+## 致谢
+
+1. 编辑器组件使用了tiptap库
+2. 数学公式使用了katex库
+3. 基础代码使用[deepseek](https://chat.deepseek.com)生成，后续调试修改了两周。
+
 ## 调试
 
 1. 从github下载插件代码
@@ -42,10 +55,11 @@
 
 ## 使用方法
 
-1. 在Logseq工具栏中点击编辑图标
-2. 使用工具栏按钮格式化文本
-3. 点击保存按钮保存更改
-4. 按ESC或点击外部区域取消
+1. 点击要可视化编辑的block所在行
+2. 在Logseq工具栏中点击RichTextEditor图标
+3. 使用编辑器中工具栏按钮编辑文本
+4. 点击保存按钮同步回block
+5. 或按ESC或点击关闭按钮取消
 
 ## TODOList
 
@@ -54,6 +68,7 @@
 3. 无序列表，需要每个item在单独一个block中
 4. 有序列表，需要使用logseq.order-list-type:: number特殊节点属性处理
 5. 代码块的编码语言使用下拉菜单代替自己输入
+6. 代码编辑时不同语言的样式
 
 ## 开发
 
