@@ -38,6 +38,14 @@
     </div>
 
     <div class="toolbar-group">
+      <button @click="toggleEmojiPicker" class="toolbar-btn emoji-btn" :class="{ 'is-active': showEmojiPicker }"
+        title="插入Emoji">
+        <span class="emoji-icon">😊</span>
+      </button>
+
+      <!-- Emoji选择器 -->
+      <EmojiPanel v-if="showEmojiPicker" @insertEmoji="insertEmoji" @closePicker="closePicker" />
+
       <button @click="editor.chain().focus().setHorizontalRule().run()" class="toolbar-btn" title="分割线">
         ―
       </button>
@@ -93,6 +101,7 @@ import img from "./icon/img.svg"
 import code from "./icon/code.svg"
 import codeblock from "./icon/codeblock.svg"
 import prompt from '../extensions/prompt.vue'
+import EmojiPanel from './EmojiPanel.vue'
 import { ref } from 'vue';
 
 const props = defineProps({
@@ -103,6 +112,7 @@ const props = defineProps({
 })
 
 const promptBox = ref(null);
+const showEmojiPicker = ref(false);
 
 const toggleHeading = (level) => {
   props.editor.chain().focus().toggleHeading({ level }).run()
@@ -157,6 +167,25 @@ const addCodeBlock = async () => {
     props.editor.chain().focus().setCodeBlock().run();
   }
 }
+
+// 插入Emoji
+const insertEmoji = (emoji) => {
+  if (props.editor) {
+    props.editor.chain().focus().insertContent(emoji).run();
+  }
+
+  // 自动关闭选择器
+  closePicker();
+}
+
+const closePicker = () => {
+  showEmojiPicker.value = false;
+};
+
+// 切换Emoji选择器
+function toggleEmojiPicker() {
+  showEmojiPicker.value = !showEmojiPicker.value;
+}
 </script>
 
 <style>
@@ -174,6 +203,7 @@ const addCodeBlock = async () => {
   gap: 2px;
   padding-right: 4px;
   border-right: 1px solid #e0e0e0;
+  position: relative;
 }
 
 .toolbar-group.is-active {
