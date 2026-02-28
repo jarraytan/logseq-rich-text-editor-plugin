@@ -251,13 +251,19 @@ const html2md = (html) => {
       .replace(/<img[^>]*src="([^"]*)"[^>]*[^>]*>/gi, " ![]($1) ") //文字后紧接![]会不识别
 
       //下划线2-1
-      .replace(/<u[^>]*>(.*?)<\/u>/gi, "___$1___")
+      .replace(/<u[^>]*>(.*?)<\/u>/gi, "<ins>$1</ins>")
 
       // 清理剩余的 HTML 标签
-      .replace(/<[^>]*>/g, "")
+      .replace(/<([^> ]*)( .*?)?>/g, (match, p1, p2, offset, string) => {
+        //<ins>是下划线标签，<span>是文本颜色标签，这两种标签都不应该被删除
+        if (p1 === "ins" || p1 === "span") {
+          return " " + match; //非行首，<>前必须有空格
+        } else if (p1 === "/ins" || p1 === "/span") {
+          return match; //</ins>或</span>标签不删除
+        }
 
-      //下划线2-2
-      .replace(/___([^_]+)___/g, " <ins>$1</ins> ") //下划线转换回HTML标签,非行首前面必须有空格
+        return ""; //其余标签删除
+      })
 
       // HTML 实体
       .replace(/&nbsp;/g, " ")
@@ -618,7 +624,7 @@ export const convertMarkdownToHTML = (markdown) => {
     .replace(/(<p>)\s*(<br>\s*)*/g, "$1")
     .replace(/(\s*<br>\s*)*<\/p>/g, "</p>")
     .replace(/\n/g, "");
-};;
+};
 
 // 辅助函数：检测是否为数学公式
 export const isMathFormula = (text) => {

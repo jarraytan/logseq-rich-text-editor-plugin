@@ -1,6 +1,19 @@
 <template>
   <div class="toolbar" v-if="editor">
     <div class="toolbar-group">
+      <button @click="toggleEmojiPicker" class="toolbar-btn emoji-btn" :class="{ 'is-active': showEmojiPicker }"
+        title="插入Emoji">
+        <span class="emoji-icon">😊</span>
+      </button>
+
+      <!-- Emoji选择器 -->
+      <EmojiPanel v-if="showEmojiPicker" @insertEmoji="insertEmoji" @closePicker="closePicker" />
+    </div>
+
+    <div class="toolbar-group">
+      <!-- 字色、背景色 -->
+      <ColorPanel :editor="editor" />
+
       <button @click="editor.chain().focus().toggleBold().run()"
         :class="['toolbar-btn', { 'is-active': editor.isActive('bold') }]" title="加粗 (Ctrl+B)">
         <strong>B</strong>
@@ -14,6 +27,10 @@
       <button @click="editor.chain().focus().toggleStrike().run()"
         :class="['toolbar-btn', { 'is-active': editor.isActive('strike') }]" title="删除线">
         <s>S</s>
+      </button>
+
+      <button @click="editor.chain().focus().setUnderline().run()" class="toolbar-btn" title="下划线">
+        _
       </button>
     </div>
 
@@ -38,20 +55,8 @@
     </div>
 
     <div class="toolbar-group">
-      <button @click="toggleEmojiPicker" class="toolbar-btn emoji-btn" :class="{ 'is-active': showEmojiPicker }"
-        title="插入Emoji">
-        <span class="emoji-icon">😊</span>
-      </button>
-
-      <!-- Emoji选择器 -->
-      <EmojiPanel v-if="showEmojiPicker" @insertEmoji="insertEmoji" @closePicker="closePicker" />
-
       <button @click="editor.chain().focus().setHorizontalRule().run()" class="toolbar-btn" title="分割线">
         ―
-      </button>
-
-      <button @click="editor.chain().focus().setUnderline().run()" class="toolbar-btn" title="下划线">
-        _
       </button>
 
       <button @click="addLink" :class="['toolbar-btn', { 'is-active': editor.isActive('link') }]" title="添加链接">
@@ -106,6 +111,7 @@ import code from "./icon/code.svg"
 import codeblock from "./icon/codeblock.svg"
 import prompt from '../extensions/prompt.vue'
 import EmojiPanel from './EmojiPanel.vue'
+import ColorPanel from './ColorPanel.vue'
 import { ref } from 'vue';
 
 const props = defineProps({

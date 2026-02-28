@@ -24,8 +24,11 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
+import Color from '@tiptap/extension-color'
+import { TextStyleKit } from '@tiptap/extension-text-style'
 import { MathExtension, convertHTMLToMarkdown, convertMarkdownToHTML } from '../extensions/MathExtension'
 import Toolbar from './Toolbar.vue'
+import { TextStyle } from '@tiptap/extension-text-style'
 
 const props = defineProps({
   visible: Boolean
@@ -50,6 +53,7 @@ const editor = useEditor({
         keepMarks: true,
         keepAttributes: false,
       },
+      underline: true,
     }),
     Image.configure({
       inline: true,
@@ -61,6 +65,20 @@ const editor = useEditor({
     MathExtension.configure({
       editor: null //后面会自动传递
     }),
+    Color.configure({
+      types: ['textStyle'],
+    }),
+    TextStyleKit.configure({
+      "textStyle": {
+        mergeNestedSpanStyles: true,
+      },
+      color: {
+        types: ['textStyle'],
+      },
+      backgroundColor: {
+        types: ['textStyle'],
+      }
+    })
   ],
   editorProps: {
     attributes: {
@@ -147,7 +165,7 @@ onUnmounted(() => {
 
 <style scoped>
 .rich-text-editor {
-  width: 800px;
+  width: 860px;
   max-width: 90vw;
   max-height: 90vh;
   background: #ffffff;
