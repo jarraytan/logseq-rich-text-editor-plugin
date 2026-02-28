@@ -95,6 +95,7 @@ const loadCurrentBlock = async () => {
       if (editor.value) {
         // 将Markdown转换为HTML
         const html = await convertMarkdownToHTML(block.content)
+        console.log('加载块内容:', html)
         editor.value.commands.setContent(html)
       }
     }

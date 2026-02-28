@@ -242,4 +242,28 @@ describe("MathExtension", () => {
     console.log("code", md2);
     expect(md2).toBe("`var a = 0;`");
   });
+
+  it("test underline", () => {
+    const htmlString = `<ul><li>text<u>this is a underline.</u>text</li></ul>`;
+    const md = convertHTMLToMarkdown(htmlString);
+    console.log("underline", md);
+    expect(md).toBe(`- text <ins>this is a underline.</ins> text\n`);
+    const htmlString2 = `<u>this is a underline.</u>`;
+    const md2 = convertHTMLToMarkdown(htmlString2);
+    console.log("underline", md2);
+    expect(md2).toBe(` <ins>this is a underline.</ins> `);
+  });
+
+  it("test convertMarkdownToHTML (underline)", () => {
+    const md = "- text <ins>this is a underline.</ins> text\n";
+    const htmlString = convertMarkdownToHTML(md);
+    console.log("underline", htmlString);
+    expect(htmlString).toBe(
+      `<ul><li>text<u>this is a underline.</u>text</li></ul><br>`,
+    );
+    const md2 = " <ins>this is a underline.</ins> ";
+    const htmlString2 = convertMarkdownToHTML(md2);
+    console.log("underline", htmlString2);
+    expect(htmlString2).toBe(`<p><u>this is a underline.</u></p>`);
+  });
 });

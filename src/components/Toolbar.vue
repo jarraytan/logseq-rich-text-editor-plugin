@@ -50,6 +50,10 @@
         ―
       </button>
 
+      <button @click="editor.chain().focus().setUnderline().run()" class="toolbar-btn" title="下划线">
+        _
+      </button>
+
       <button @click="addLink" :class="['toolbar-btn', { 'is-active': editor.isActive('link') }]" title="添加链接">
         <img :src="link" alt="超链接" />
       </button>

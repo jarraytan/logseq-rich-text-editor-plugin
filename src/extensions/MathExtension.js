@@ -249,8 +249,16 @@ const html2md = (html) => {
         " ![$2]($1) ",
       )
       .replace(/<img[^>]*src="([^"]*)"[^>]*[^>]*>/gi, " ![]($1) ") //文字后紧接![]会不识别
+
+      //下划线2-1
+      .replace(/<u[^>]*>(.*?)<\/u>/gi, "___$1___")
+
       // 清理剩余的 HTML 标签
       .replace(/<[^>]*>/g, "")
+
+      //下划线2-2
+      .replace(/___([^_]+)___/g, " <ins>$1</ins> ") //下划线转换回HTML标签,非行首前面必须有空格
+
       // HTML 实体
       .replace(/&nbsp;/g, " ")
       .replace(/&lt;/g, "<")
@@ -501,6 +509,9 @@ export const convertMarkdownToHTML = (markdown) => {
   // 删除线
   result = result.replace(/~~(.*?)~~/g, "<del>$1</del>");
 
+  // 下划线
+  result = result.replace(/ ?<ins>(.*?)<\/ins> ?/g, "<u>$1</u>");
+
   // 5. 恢复数学公式占位符
   // 块级公式
   result = result.replace(
@@ -607,7 +618,7 @@ export const convertMarkdownToHTML = (markdown) => {
     .replace(/(<p>)\s*(<br>\s*)*/g, "$1")
     .replace(/(\s*<br>\s*)*<\/p>/g, "</p>")
     .replace(/\n/g, "");
-};
+};;
 
 // 辅助函数：检测是否为数学公式
 export const isMathFormula = (text) => {
