@@ -292,6 +292,44 @@ describe("MathExtension", () => {
     const htmlString2 = `这是<span style="color: rgb(56, 161, 105);">红色文字</span>!`;
     const md2 = convertHTMLToMarkdown(htmlString2);
     console.log("color", md2);
-    expect(md2).toBe(`这是 <span style="color: rgb(56, 161, 105);">红色文字</span>!`);
+    expect(md2).toBe(
+      `这是 <span style="color: rgb(56, 161, 105);">红色文字</span>!`,
+    );
+  });
+
+  it("test convertMarkdownToHTML (marquee)", () => {
+    const md = ` @@html: <marquee direction="left">这是跑马灯文字!</marquee>@@`;
+    const htmlString = convertMarkdownToHTML(md);
+    console.log("marquee", htmlString);
+    expect(htmlString).toBe(
+      `<p><marquee direction="left">这是跑马灯文字!</marquee></p>`,
+    );
+    const md3 = `@@html: <marquee direction="left">这是一条跑马灯</marquee>@@`;
+    const htmlString3 = convertMarkdownToHTML(md3);
+    console.log("marquee", htmlString3);
+    expect(htmlString3).toBe(
+      `<p><marquee direction="left">这是一条跑马灯</marquee></p>`,
+    );
+    const md2 = `这是 @@html: <marquee direction="left">跑马灯文字!</marquee>@@!`;
+    const htmlString2 = convertMarkdownToHTML(md2);
+    console.log("marquee", htmlString2);
+    expect(htmlString2).toBe(
+      `<p>这是<marquee direction="left">跑马灯文字!</marquee>!</p>`,
+    );
+  });
+
+  it("test marquee", () => {
+    const htmlString = `<marquee direction="left">这是跑马灯文字!</marquee>`;
+    const md = convertHTMLToMarkdown(htmlString);
+    console.log("marquee", md);
+    expect(md).toBe(
+      ` @@html: <marquee direction="left">这是跑马灯文字!</marquee>@@`,
+    );
+    const htmlString2 = `这是<marquee direction="left">跑马灯文字</marquee>!`;
+    const md2 = convertHTMLToMarkdown(htmlString2);
+    console.log("marquee", md2);
+    expect(md2).toBe(
+      `这是 @@html: <marquee direction="left">跑马灯文字</marquee>@@!`,
+    );
   });
 });

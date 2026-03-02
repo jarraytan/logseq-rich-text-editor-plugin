@@ -11,6 +11,11 @@
     </div>
 
     <div class="toolbar-group">
+      <button @click="toggleMarquee" class="toolbar-btn" :class="{ 'is-active': editor.isActive('marquee') }"
+        title="文字跑马灯">
+        <span class="marquee-icon">✨</span>
+      </button>
+
       <!-- 字色、背景色 -->
       <ColorPanel :editor="editor" />
 
@@ -29,7 +34,7 @@
         <s>S</s>
       </button>
 
-      <button @click="editor.chain().focus().setUnderline().run()" class="toolbar-btn" title="下划线">
+      <button @click="editor.chain().focus().toggleUnderline().run()" class="toolbar-btn" title="下划线">
         _
       </button>
     </div>
@@ -195,6 +200,25 @@ const closePicker = () => {
 // 切换Emoji选择器
 function toggleEmojiPicker() {
   showEmojiPicker.value = !showEmojiPicker.value;
+}
+
+
+// 切换跑马灯效果
+function toggleMarquee() {
+  if (!props.editor) return
+
+  const { from, to, empty } = props.editor.state.selection;
+  if (!props.editor.isActive('marquee')) { //没有打开时，必须先选中文本；已打开时直接关闭
+    if (empty || from === to) {
+      logseq.UI.showMsg('请先选中要添加跑马灯效果的文字', 'warning')
+      return
+    }
+    props.editor.chain().focus().setMarquee().run()
+  }
+  else {
+    props.editor.commands.selectMarquee()
+    props.editor.commands.unsetMarquee()
+  }
 }
 </script>
 

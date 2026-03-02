@@ -28,7 +28,7 @@ import Color from '@tiptap/extension-color'
 import { TextStyleKit } from '@tiptap/extension-text-style'
 import { MathExtension, convertHTMLToMarkdown, convertMarkdownToHTML } from '../extensions/MathExtension'
 import Toolbar from './Toolbar.vue'
-import { TextStyle } from '@tiptap/extension-text-style'
+import { Marquee } from '../extensions/MarqueeExtension'
 
 const props = defineProps({
   visible: Boolean
@@ -78,7 +78,8 @@ const editor = useEditor({
       backgroundColor: {
         types: ['textStyle'],
       }
-    })
+    }),
+    Marquee
   ],
   editorProps: {
     attributes: {
@@ -165,7 +166,7 @@ onUnmounted(() => {
 
 <style scoped>
 .rich-text-editor {
-  width: 860px;
+  width: 890px;
   max-width: 90vw;
   max-height: 90vh;
   background: #ffffff;

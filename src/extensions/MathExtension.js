@@ -253,12 +253,14 @@ const html2md = (html) => {
       //下划线2-1
       .replace(/<u[^>]*>(.*?)<\/u>/gi, "<ins>$1</ins>")
 
+      .replace(/(<marquee[^>]*>.*?<\/marquee>)/gi, " @@html:$1@@") //空格必须有
+
       // 清理剩余的 HTML 标签
       .replace(/<([^> ]*)( .*?)?>/g, (match, p1, p2, offset, string) => {
         //<ins>是下划线标签，<span>是文本颜色标签，这两种标签都不应该被删除
-        if (p1 === "ins" || p1 === "span") {
+        if (p1 === "ins" || p1 === "span" || p1 === "marquee") {
           return " " + match; //非行首，<>前必须有空格
-        } else if (p1 === "/ins" || p1 === "/span") {
+        } else if (p1 === "/ins" || p1 === "/span" || p1 === "/marquee") {
           return match; //</ins>或</span>标签不删除
         }
 
@@ -517,6 +519,9 @@ export const convertMarkdownToHTML = (markdown) => {
 
   // 下划线
   result = result.replace(/ ?<ins>(.*?)<\/ins> ?/g, "<u>$1</u>");
+
+  //html内容
+  result = result.replace(/\s*@@html: (.*?)@@/g, "$1");
 
   // 5. 恢复数学公式占位符
   // 块级公式
